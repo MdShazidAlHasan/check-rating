@@ -17,7 +17,9 @@
       "matches": [
         "https://codeforces.com/problemset/problem/*",
         "https://codeforces.com/contest/*/problem/*",
-        "https://codeforces.com/gym/*/problem/*"
+        "https://codeforces.com/gym/*/problem/*",
+        "https://codeforces.com/problemset",
+        "https://codeforces.com/problemset/*"
       ],
       "js": ["content.js"],
       "css": ["style.css"],

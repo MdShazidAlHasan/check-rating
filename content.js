@@ -1,17 +1,27 @@
 // Check Rating — Codeforces content script
 // Shows the problem's rating and hides tags behind a "Show Tags" button.
+// Handles two page types:
+//   1. Individual problem statement pages (/problemset/problem/ID/IDX, /contest/ID/problem/IDX, /gym/ID/problem/IDX)
+//   2. The problem listing page (/problemset, /problemset/page/N, /problemset?tags=...)
 
 const API_URL = "https://codeforces.com/api/problemset.problems";
 const CACHE_KEY = "cf_problem_data";
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
+// ---------- Shared helpers ----------
+
 function parseProblemFromUrl() {
-  const url = window.location.pathname; // e.g. /problemset/problem/1234/A or /contest/1234/problem/A
-  let match = url.match(/\/problemset\/problem\/(\d+)\/([A-Za-z0-9]+)/);
-  if (!match) match = url.match(/\/contest\/(\d+)\/problem\/([A-Za-z0-9]+)/);
-  if (!match) match = url.match(/\/gym\/(\d+)\/problem\/([A-Za-z0-9]+)/);
+  const path = window.location.pathname; // e.g. /problemset/problem/1234/A or /contest/1234/problem/A
+  let match = path.match(/\/problemset\/problem\/(\d+)\/([A-Za-z0-9]+)/);
+  if (!match) match = path.match(/\/contest\/(\d+)\/problem\/([A-Za-z0-9]+)/);
+  if (!match) match = path.match(/\/gym\/(\d+)\/problem\/([A-Za-z0-9]+)/);
   if (!match) return null;
   return { contestId: parseInt(match[1], 10), index: match[2].toUpperCase() };
+}
+
+function isListingPage() {
+  // /problemset itself, /problemset/page/N, /problemset?tags=... — but NOT an individual problem page.
+  return window.location.pathname.startsWith("/problemset") && !parseProblemFromUrl();
 }
 
 function getCachedProblems() {
@@ -47,60 +57,46 @@ async function fetchAllProblems() {
 }
 
 function findProblem(problems, contestId, index) {
-  return problems.find(
-    (p) => p.contestId === contestId && p.index === index
-  );
+  return problems.find((p) => p.contestId === contestId && p.index === index);
 }
 
-function findTagBox() {
-  // Codeforces renders tags in a block with class "tag-box" inside ".roundbox" sidebar
-  return document.querySelectorAll(".tag-box");
+function setHidden(els, hidden) {
+  els.forEach((el) => {
+    el.style.setProperty("display", hidden ? "none" : "", "important");
+  });
 }
 
-function buildBadgeAndButton(rating, tagEls) {
+function buildFloatingPanel({ ratingText } = {}) {
   const container = document.createElement("div");
   container.id = "check-rating-container";
 
-  const badge = document.createElement("span");
-  badge.id = "check-rating-badge";
-  badge.textContent = rating ? `Rating: ${rating}` : "Rating: N/A";
-  container.appendChild(badge);
+  if (ratingText) {
+    const badge = document.createElement("span");
+    badge.id = "check-rating-badge";
+    badge.textContent = ratingText;
+    container.appendChild(badge);
+  }
 
   const button = document.createElement("button");
   button.id = "check-rating-toggle-btn";
   button.textContent = "Show Tags";
-
-  // Track visibility explicitly instead of reading computed/inline styles back,
-  // since CF's own tag-box elements don't all share one consistent default
-  // display value, which was making the old read-back logic flip inconsistently.
-  let tagsVisible = false;
-
-  button.addEventListener("click", () => {
-    tagsVisible = !tagsVisible;
-    tagEls.forEach((el) => {
-      el.style.setProperty("display", tagsVisible ? "inline-block" : "none", "important");
-    });
-    button.textContent = tagsVisible ? "Hide Tags" : "Show Tags";
-  });
   container.appendChild(button);
 
-  return container;
-}
-
-function insertContainer(container) {
-  // Fixed floating panel, bottom-right corner — doesn't disturb the statement layout.
   document.body.appendChild(container);
+  return button;
 }
 
-async function init() {
-  const parsed = parseProblemFromUrl();
-  if (!parsed) return;
+// ---------- Individual problem statement page ----------
 
-  const tagEls = findTagBox();
-  // Hide tags by default (!important guards against CF's own inline-block styling)
-  tagEls.forEach((el) => {
-    el.style.setProperty("display", "none", "important");
-  });
+function findStatementTagEls() {
+  // On statement pages, Codeforces renders tags as plain (non-link) text
+  // inside a "tag-box" element in the sidebar.
+  return Array.from(document.querySelectorAll(".tag-box"));
+}
+
+async function initProblemPage(parsed) {
+  const tagEls = findStatementTagEls();
+  setHidden(tagEls, true); // hidden by default
 
   let rating = null;
   try {
@@ -111,8 +107,62 @@ async function init() {
     console.warn("Check Rating: failed to fetch rating", e);
   }
 
-  const container = buildBadgeAndButton(rating, tagEls);
-  insertContainer(container);
+  const button = buildFloatingPanel({
+    ratingText: rating ? `Rating: ${rating}` : "Rating: N/A",
+  });
+
+  let tagsVisible = false;
+  button.addEventListener("click", () => {
+    tagsVisible = !tagsVisible;
+    setHidden(tagEls, !tagsVisible);
+    button.textContent = tagsVisible ? "Hide Tags" : "Show Tags";
+  });
+}
+
+// ---------- Problem listing page (/problemset, /problemset/page/N, ...) ----------
+
+function findListingTagContainers() {
+  // On the listing table, each tag is rendered as a real <a> link whose href
+  // contains "tags=" (e.g. /problemset?tags=dp). The sidebar's "Filter Problems"
+  // tag picker does NOT use these same anchor links, so this selector only
+  // catches the per-row tags, leaving the filter widget untouched.
+  const links = Array.from(
+    document.querySelectorAll('a[href*="/problemset?tags="]')
+  );
+  const containers = new Set();
+  links.forEach((link) => {
+    // Hide the link's immediate parent, which wraps just the tag list for that row.
+    if (link.parentElement) containers.add(link.parentElement);
+  });
+  return Array.from(containers);
+}
+
+function initListingPage() {
+  const tagContainers = findListingTagContainers();
+  if (tagContainers.length === 0) return; // e.g. /problemset/status, no tags on this subpage
+
+  setHidden(tagContainers, true); // hidden by default
+
+  const button = buildFloatingPanel({});
+  button.textContent = "Show Tags";
+
+  let tagsVisible = false;
+  button.addEventListener("click", () => {
+    tagsVisible = !tagsVisible;
+    setHidden(tagContainers, !tagsVisible);
+    button.textContent = tagsVisible ? "Hide Tags" : "Show Tags";
+  });
+}
+
+// ---------- Entry point ----------
+
+async function init() {
+  const parsed = parseProblemFromUrl();
+  if (parsed) {
+    await initProblemPage(parsed);
+  } else if (isListingPage()) {
+    initListingPage();
+  }
 }
 
 init();
