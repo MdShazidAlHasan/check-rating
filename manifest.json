@@ -15,15 +15,11 @@
   "content_scripts": [
     {
       "matches": [
-        "https://codeforces.com/problemset/problem/*",
-        "https://codeforces.com/contest/*/problem/*",
-        "https://codeforces.com/gym/*/problem/*",
-        "https://codeforces.com/problemset",
-        "https://codeforces.com/problemset/*"
+        "https://codeforces.com/*"
       ],
       "js": ["content.js"],
       "css": ["style.css"],
-      "run_at": "document_idle"
+      "run_at": "document_start"
     }
   ]
 }

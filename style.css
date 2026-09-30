@@ -1,39 +1,255 @@
+/* Check Rating — Styles */
+
+/* 1. Immediate zero-flicker hiding of tags by default on listing & problem pages */
+body:not(.check-rating-show-tags) table.problems td > div[style*="float: right"],
+body:not(.check-rating-show-tags) table.problems a[href*="tags="],
+body:not(.check-rating-show-tags) table.problems a.notice {
+  display: none !important;
+}
+
+body:not(.check-rating-show-tags) .tag-box,
+body:not(.check-rating-show-tags) .check-rating-tags-sidebox,
+body:not(.check-rating-show-tags) #check-rating-tags-area,
+body:not(.check-rating-show-tags) .roundbox.sidebox .notice {
+  display: none !important;
+}
+
+/* 2. Floating Panel (used on problemset listing pages or fallback) */
 #check-rating-container {
   position: fixed;
   bottom: 20px;
   right: 20px;
   z-index: 999999;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: #f5f7fa;
-  border: 1px solid #d6dde5;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  border-radius: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.12), 0 2px 6px -1px rgba(15, 23, 42, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+}
+
+#check-rating-container:hover {
+  box-shadow: 0 6px 20px -2px rgba(15, 23, 42, 0.16), 0 3px 8px -1px rgba(15, 23, 42, 0.08);
+}
+
+/* 3. Problem Page Panel (placed in sidebar below Contest materials section) */
+#check-rating-container.check-rating-sidebar,
+#check-rating-container.check-rating-integrated {
+  position: static;
+  bottom: auto;
+  right: auto;
+  z-index: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px;
+  margin-bottom: 1em;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(203, 213, 225, 0.9);
   border-radius: 8px;
-  font-family: Verdana, Arial, sans-serif;
-  font-size: 13px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+  width: 100%;
+  box-sizing: border-box;
 }
 
+#check-rating-container.check-rating-sidebar:hover,
+#check-rating-container.check-rating-integrated:hover {
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12);
+  transform: none;
+}
+
+/* Tags area inside the integrated sidebar box */
+#check-rating-tags-area {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(203, 213, 225, 0.9);
+  line-height: 1.8;
+}
+
+body.dark #check-rating-tags-area,
+body[data-theme="dark"] #check-rating-tags-area,
+.theme-dark #check-rating-tags-area {
+  border-top-color: rgba(71, 85, 105, 0.6);
+}
+
+/* Rating Badge & Tiers */
 #check-rating-badge {
-  font-weight: bold;
-  color: #1a5fb4;
-  background: #e4edf9;
-  padding: 3px 8px;
-  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.2px;
+  line-height: 1.2;
+  box-sizing: border-box;
 }
 
+.rating-newbie {
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+}
+
+.rating-pupil {
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.rating-specialist {
+  color: #0e7490;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
+}
+
+.rating-expert {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.rating-cm {
+  color: #7e22ce;
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+}
+
+.rating-master {
+  color: #c2410c;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.rating-gm {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.rating-unrated {
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+/* Show / Hide Tags Toggle Button */
 #check-rating-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  padding: 4px 10px;
+  padding: 5px 12px;
   font-size: 12px;
-  border: 1px solid #1a5fb4;
-  background: #1a5fb4;
-  color: #fff;
-  border-radius: 4px;
-  transition: background 0.15s ease;
+  font-weight: 600;
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  border-radius: 9999px;
+  line-height: 1.2;
+  text-align: center;
+  box-sizing: border-box;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
 }
 
 #check-rating-toggle-btn:hover {
-  background: #164d92;
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.35);
+}
+
+#check-rating-toggle-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Friends Standings Button */
+#check-rating-friends-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 9999px;
+  text-decoration: none;
+  text-decoration: none !important;
+  line-height: 1.2;
+  box-sizing: border-box;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#check-rating-friends-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+  text-decoration: none !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+#check-rating-friends-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+#check-rating-friends-btn .check-rating-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  fill: currentColor;
+}
+
+/* Dark Mode / Nocturne Support */
+body.dark #check-rating-container,
+body[data-theme="dark"] #check-rating-container,
+.theme-dark #check-rating-container {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(71, 85, 105, 0.6);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+body.dark #check-rating-container.check-rating-sidebar,
+body.dark #check-rating-container.check-rating-integrated,
+body[data-theme="dark"] #check-rating-container.check-rating-sidebar,
+body[data-theme="dark"] #check-rating-container.check-rating-integrated,
+.theme-dark #check-rating-container.check-rating-sidebar,
+.theme-dark #check-rating-container.check-rating-integrated {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(71, 85, 105, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark #check-rating-friends-btn,
+body[data-theme="dark"] #check-rating-friends-btn,
+.theme-dark #check-rating-friends-btn {
+  background: #334155;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
+body.dark #check-rating-friends-btn:hover,
+body[data-theme="dark"] #check-rating-friends-btn:hover,
+.theme-dark #check-rating-friends-btn:hover {
+  background: #3b4d66;
+  border-color: #64748b;
+  color: #ffffff;
 }
