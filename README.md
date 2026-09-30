@@ -30,7 +30,7 @@ A modern Chrome extension for Codeforces:
 1. Open Chrome and go to `chrome://extensions`.
 2. Turn on **Developer mode** (top-right toggle).
 3. Click **Load unpacked**.
-4. Select this extension folder (`check-rating2`).
+4. Select this extension folder (`check-rating`).
 5. Visit any Codeforces problem page or problemset listing:
    - Problem page: `https://codeforces.com/contest/2264/problem/C`
    - Problemset page: `https://codeforces.com/problemset?tags=1200-1500`
